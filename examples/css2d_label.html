@@ -134,6 +134,15 @@
 				earth.add( earthLabel );
 				earthLabel.layers.set( 0 );
 
+
+				const testImg = document.createElement( 'img' );
+				testImg.className = 'test_img';
+				testImg.src = 'https://t7.baidu.com/it/u=1819248061,230866778&fm=193&f=GIF';
+				testImg.width = '64';
+				testImg.height = '64';
+
+				earthDiv.appendChild( testImg );
+
 				const earthMassDiv = document.createElement( 'div' );
 				earthMassDiv.className = 'label';
 				earthMassDiv.textContent = '5.97237e24 kg';

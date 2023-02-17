@@ -25,7 +25,9 @@ function Viewport( editor ) {
 	container.setId( 'viewport' );
 	container.setPosition( 'absolute' );
 
+	// 切换相机
 	container.add( new ViewportCamera( editor ) );
+	// 模型相关信息
 	container.add( new ViewportInfo( editor ) );
 
 	//

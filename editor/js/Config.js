@@ -1,3 +1,4 @@
+// SETTING（配置） 页面
 function Config() {
 
 	const name = 'threejs-editor';

@@ -16,6 +16,7 @@ _DEFAULT_CAMERA.lookAt( new THREE.Vector3() );
 
 function Editor() {
 
+	// https://github.com/millermedeiros/js-signals
 	const Signal = signals.Signal; // eslint-disable-line no-undef
 
 	this.signals = {
