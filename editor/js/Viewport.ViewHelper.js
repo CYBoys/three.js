@@ -2,6 +2,7 @@ import { UIPanel } from './libs/ui.js';
 
 import { ViewHelper as ViewHelperBase } from '../../examples/jsm/helpers/ViewHelper.js';
 
+// XYZ辅助
 class ViewHelper extends ViewHelperBase {
 
 	constructor( editorCamera, container ) {
