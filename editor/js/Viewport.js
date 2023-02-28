@@ -16,6 +16,7 @@ import { SetRotationCommand } from './commands/SetRotationCommand.js';
 import { SetScaleCommand } from './commands/SetScaleCommand.js';
 
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import Stats from 'three/addons/libs/stats.module.js';
 
 function Viewport( editor ) {
 
@@ -31,6 +32,9 @@ function Viewport( editor ) {
 	container.add( new ViewportInfo( editor ) );
 
 	//
+
+	const stats = new Stats();
+	container.dom.appendChild( stats.dom );
 
 	let renderer = null;
 	let pmremGenerator = null;
@@ -670,6 +674,7 @@ function Viewport( editor ) {
 
 	function animate() {
 
+		stats.update();
 		const mixer = editor.mixer;
 		const delta = clock.getDelta();
 
