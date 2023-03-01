@@ -6,6 +6,8 @@ import { History as _History } from './History.js';
 import { Strings } from './Strings.js';
 import { Storage as _Storage } from './Storage.js';
 import { Selector } from './Viewport.Selector.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 THREE.ColorManagement.enabled = true;
 
@@ -126,6 +128,8 @@ function Editor() {
 	this.viewportCamera = this.camera;
 
 	this.addCamera( this.camera );
+
+	this.modelUrl = "http://192.168.1.200/resource/BlastFurnace22.zip";
 
 }
 
@@ -641,18 +645,84 @@ Editor.prototype = {
 
 	fromJSON: async function ( json ) {
 
-		var loader = new THREE.ObjectLoader();
-		var camera = await loader.parseAsync( json.camera );
+		// var loader = new THREE.ObjectLoader();
+		// var camera = await loader.parseAsync( json.camera );
 
-		this.camera.copy( camera );
-		this.signals.cameraResetted.dispatch();
+		// this.camera.copy( camera );
+		// this.signals.cameraResetted.dispatch();
 
-		this.history.fromJSON( json.history );
-		this.scripts = json.scripts;
+		// this.history.fromJSON( json.history );
+		// this.scripts = json.scripts;
 
-		this.setScene( await loader.parseAsync( json.scene ) );
+		// this.setScene( await loader.parseAsync( json.scene ) );
 
+		// --------------------------
+		this.download();
 	},
+
+	download() {
+		const fileLoader = new THREE.FileLoader();
+    	fileLoader.setResponseType("arraybuffer").load(this.modelUrl, this.onModelLoaded.bind(this));
+	},
+
+	async onModelLoaded(data) {
+		//zip.js加载文件流生成对应文件:
+		const zip = new JSZip();
+		// const promise = JSZip.external.Promise;
+		const baseUrl = "blob:" + THREE.LoaderUtils.extractUrlBase(this.modelUrl);
+		const pendings = [];
+		const fileMap = {};
+		await zip.loadAsync(data);
+		//转成blob文件，用URL.createObjectURL创建文件的url
+		for (let file in zip.files) {
+		  const entry = zip.file(file);
+		  if (entry === null) continue;
+		  pendings.push(
+			entry.async("blob").then(
+			  ((file, blob) => {
+				fileMap[baseUrl + file] = URL.createObjectURL(blob);
+			  }).bind(this, file)
+			)
+		  );
+		}
+		//监听所有请求结束
+		// await promise.all(pendings);
+		// 和👆等价替换
+		await Promise.all(pendings);
+	
+		//模型文件url，根据模型后缀匹配
+		const modelUrl = Object.keys(fileMap).find((item) => /\.(glb)$/.test(item));
+	
+		const manager = new THREE.LoadingManager();
+	
+		//转换处理，传入的是后台返回的路径，需找到对应blob
+		manager.setURLModifier((url) => {
+		  return fileMap[url] ? fileMap[url] : url;
+		});
+	
+		// TODO: 本处只是展示了使用gltf，如果是其他格式的模型，应使用对于的模型加载器
+	
+		// gltf加载器加载.glb模型时，需要设置解码器
+		const dracoLoader = new DRACOLoader();
+		// 设置解压库文件路径，本地解码放在public文件夹下
+		// 对应官方例子下的 examples/jsm/libs/draco/gltf
+		dracoLoader.setDecoderPath("draco/gltf/");
+	
+		const loader = new GLTFLoader(manager);
+		loader.setDRACOLoader(dracoLoader);
+		loader.load(
+		  modelUrl,
+		  (gltf) => {
+			this.setScene(gltf.scene);
+		  },
+		  (event) => {
+			console.log("------ progress: ", event);
+		  },
+		  (error) => {
+			console.error("------ download error: ", error);
+		  }
+		);
+	  },
 
 	toJSON: function () {
 
